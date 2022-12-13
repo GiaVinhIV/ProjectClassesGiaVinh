@@ -108,7 +108,7 @@ class Doctor:
             print(f"{self.new_list[i][0]: <5}{self.new_list[i][1]: <20}{self.new_list[i][2]: <15}{(self.new_list[i][3].lower()): <15}{(self.new_list[i][4].upper()): <15}{self.new_list[i][5]: <0}")
 
     def writeListOfDoctorsToFile(self,doctor_list):
-        self.open_file = open("files\doctors.txt", "w")
+        self.open_file = open("doctors.txt", "w")
         self.index = 0
         for entries in doctor_list:
             self.open_file.write(doctor_list[self.index])
@@ -255,125 +255,115 @@ class Laboratory:
         return labsObjectList
 
 
-class Patient:
-    def __init__(self, pid, name, disease, gender, age) -> None:
-        self.pid = pid
-        self.name = name
-        self.disease = disease
-        self.gender = gender
-        self.age = age
+class Patients:
+    
+    def __init__(self):
+        self.id = "None"
+        self.name = "None"
+        self.dis = "None"
+        self.gender = "None"
+        self.age = "None"
 
-    def __str__(self):
-        return f'{self.name} is a {self.age} year old {self.gender} affected with {self.disease}'
+    def formatPatientInfo(self,list_to_convert):
+        self.converted_string = '_'.join(list_to_convert)
+        return self.converted_string + '\n'
 
-    def formatPatientInfo(propertiesValuesList): #Formats patient information to be added to the file
-        spaces = [5, 23, 16, 16, 16]
-        formattedText = ""
-        for item in propertiesValuesList:
-            formattedText += item + \
-                (" " * (spaces[propertiesValuesList.index(item)] - len(item))) #
-        return formattedText
+    def enterPatientInfo(self):
+        self.id = input("Enter the patient's ID:\n\n")
+        self.name = input("Enter the patient's name:\n\n")
+        self.dis = input("Enter the patient's disease:\n\n")
+        self.gender = input("Enter the patient's gender:\n\n")
+        self.age = input("Enter the patient's age:\n\n")
+        return [self.id,self.name,self.dis,self.gender,self.age]
 
-    def enterPatientInfo(self): #Asks the user to enter the patient info 
-        self.id = input("Enter the Patients's ID: \n")
-        self.name = input("Enter the Patients's name: \n")
-        self.disease = input("Enter the Patient's Disease: \n")
-        self.gender = input("Enter the Patient's Gender: \n")
-        self.age = input("Enter the Patient's Age: \n")
+    def readPatientFile(self):
+        self.open_file = open("patients.txt", "r")
+        self.test_list = self.open_file.readlines()
+        self.open_file.close()
+        return self.test_list
 
-    def readPatientsFile(): #Reads from file patients.txt
-        path = "patients.txt"
-        patientsObjectList = []
-        try:
-            file = open(path, 'r')
-            lines = file.readlines()
-            for line in lines:
-                if line.replace(" ", "") != "\n":
-                    line = line.replace('\n', '')
-                    line = re.split(r'\s{2,}', line)
-                    patient = Patient(line[0], line[1],
-                                      line[2], line[3], line[4])
+    def searchPatientById(self):
+        self.patient_list = self.readPatientFile()
+        self.new_list = []
+        
+        for i in range(len(self.patient_list)):
+            self.new_list.append([])
+            self.new_list[i] = self.patient_list[i].split("_")
 
-                    patientsObjectList.append(patient)
+        self.query = input("\n Enter the patient ID:\n\n")
+        
+        self.flag = False
+        for i in range(len(self.new_list)):
+            if self.new_list[i][0] == self.query:
+                self.displayPatientInfo(self.new_list[i])
+                self.flag = True
+        if self.flag == False:
+            print("Can't find the patient with the same ID on the system")
+        
+    def displayPatientInfo(self,patient_list):
+        self.patient_list = patient_list
+        self.patient_list[4] = self.patient_list[4].upper() #capitalizes qualifications due to file inconsistancy
+        print(f"{'Id': <5}{'Name': <20}{'Disease': <15}{'Gender': <15}{'Age': <0}"+'\n')
+        print(f"{self.patient_list[0]: <5}{self.patient_list[1]: <20}{self.patient_list[2]: <15}{self.patient_list[3]: <15}{self.patient_list[4]: <0}")
 
-            file.close()
-        except IOError:
-            file = open(path, 'a+')
-            print("patients.txt file created")
+    def editPatientInfo(self):
+        self.patient_list = self.readPatientFile()
+        self.new_list = []
+        for i in range(len(self.patient_list)):
+            self.new_list.append([])
+            self.new_list[i] = self.patient_list[i].split("_")
 
-        return patientsObjectList
+        self.query = input("Please enter the id of the patient that you want to edit their information:\n\n")
+        
+        self.flag = False
+        for i in range(len(self.new_list)):
+            if self.new_list[i][0] == self.query:
+                self.new_list[i][1] = input("\nEnter new Name:\n\n")
+                self.new_list[i][2] = input("\nEnter new Disease:\n\n")
+                self.new_list[i][3] = input("\nEnter new Gender: \n\n")
+                self.new_list[i][4] = input("\nEnter new Age: \n\n")
+                self.patient_list[i] = self.formatPatientInfo(self.new_list[i])
+                self.writeListOfPatientsToFile(self.patient_list)
+                self.flag = True
+        if self.flag == False:
+            print("Can't find the patients with the same ID on the system\n")
 
-    def searchPatientById(idSearch): #Searches for a patient using their ID
-        patientsObjectList = Patient.readPatientsFile()
-        idExist = False
-        for patient in patientsObjectList:
-            if patient.id == idSearch:
-                patient.displayPatientInfo()
-                idExist = True
-                return patientsObjectList.index(patient)
-        if idExist == False:
-            print("Can't find the doctor with the same ID on the system \n")
-            return -1
+    def displayPatientList(self):
+        self.patient_list = self.readPatientFile()
+        self.new_list = []
 
-    def displayPatientInfo(self): #Displays patient info
-        headerList = ["ID", "Name", "Disease", "Gender", "Age"]
-        print(Patient.formatPatientInfo(headerList) + "\n")
-        valuesList = [self.id, self.name, self.disease, self.gender, self.age]
-        print(Patient.formatPatientInfo(valuesList))
+        for i in range(len(self.patient_list)):
+            self.new_list.append([])
+            self.new_list[i] = self.patient_list[i].split("_")
+        
+        del self.new_list[0] 
+    
+        print(f"{'Id': <5}{'Name': <20}{'Disease': <15}{'Gender': <15}{'Age': <0}"+'\n')
+        for i in range(len(self.new_list)):
+            print(f"{self.new_list[i][0]: <5}{self.new_list[i][1]: <20}{self.new_list[i][2]: <15}{(self.new_list[i][3].lower()): <15}{self.new_list[i][4]: <0}")
 
-    def editPatientInfo(): #Asks the user to edit patient information
-        pt_Id = input(
-            "Please enter the id of the doctor that you want to edit their information:\n")
-        pt_index = Patient.searchPatientById(pt_Id)
-        if pt_index != -1:
-            ptObjList = Patient.readPatientsFile()
-            ptObjList[pt_index].name = input("Enter new Name: \n")
-            ptObjList[pt_index].disease = input("Enter new disease: \n")
-            ptObjList[pt_index].gender = input("Enter new gender: \n")
-            ptObjList[pt_index].age = input("Enter new age: \n")
-            Patient.writeListOfPatientsToFile(ptObjList)
-        else:
-            return -1
+    def writeListOfPatientsToFile(self,patient_list):
+        self.open_file = open("patient.txt", "w")
+        self.index = 0
+        for entries in patient_list:
+            self.open_file.write(patient_list[self.index])
+            self.index +=1
+        self.open_file.close()
 
-    def displayPatientsList(): #Displays the list of patients
-        path = "patients.txt"
-        headerList = ["ID", "Name", "Disease", "Gender", "Age"]
-        headerSpaces = [5, 23, 16, 16, 16]
-        for item in headerList:
-            print(
-                item + (" " * (headerSpaces[headerList.index(item)] - len(item))), end="")
-        print("\n")
-        with open(path, 'r') as file:
-            lines = file.readlines()
-            for line in lines:
-                print(line)
-        file.close()
+    def addPatientToFile(self):
+        self.patient_to_add = self.enterPatientInfo()
+        self.patient_to_add = self.formatPatientInfo(self.patient_to_add)
+        self.patient_list = self.readPatientFile()
+        
+        self.index = 0
+        for entries in self.patient_list:
+            if self.patient_list[self.index].endswith('\n') == False:
+                self.patient_list[self.index] = self.patient_list[self.index] + '\n'
+            self.index += 1
 
-    def writeListOfPatientsToFile(patientsObjectList): #Writes a list of patients into the patients.txt file
-        path = "patients.txt"
-        file = open(path, "r+")
-        textOutput = ""
-        for pt in patientsObjectList:
-            ptProperties = [pt.pid, pt.name, pt.disease, pt.gender, pt.age]
-            ft = Patient.formatPatientInfo(ptProperties)
-            textOutput += ft + "\n\n"
+        self.patient_list.append(self.patient_to_add)
+        self.writeListOfPatientsToFile(self.patient_list)
 
-        file.truncate(0)
-        file.write(textOutput)
-        file.close()
-
-    def addPatientToFile(ptObject): #Adds a new patient to the file
-        path = "patients.txt"
-        textOutput = ""
-
-        file = open(path, "a")
-        pt = ptObject
-        drProperties = [pt.pid, pt.name, pt.disease, pt.gender, pt.age]
-
-        addText = Patient.formatPatientInfo(drProperties)
-        textOutput += addText + "\n\n"
-        file.write(textOutput)
-        file.close()
 
 class Management:
     
@@ -428,7 +418,7 @@ class Management:
                 while self.cycle:
                     self.option = input('Laboratories Menu:\n1 - Display laboratories list\n2 - Add laboratory\n3 - Back to the Main Menu\n\n')
                     if int(self.option) == 1:
-                        self.obj_handle.displayLabsList()
+                        self.obj_handle.displayLabList()
                     elif int(self.option) == 2:
                         self.obj_handle.addLabToFile()
                     elif int(self.option) == 3:
@@ -437,11 +427,11 @@ class Management:
             
             elif int(self.option) == 4:
                 self.cycle = True
-                self.obj_handle = Patient()
+                self.obj_handle = Patients()
                 while self.cycle:
                     self.option = input('Patients Menu:\n1 - Display patients list\n2 - Search for patient by ID\n3 - Add patient\n4 - Edit patient info\n5 - Back to the Main Menu\n\n')
                     if int(self.option) == 1:
-                        self.obj_handle.displayPatientsList()
+                        self.obj_handle.displayPatientList()
                     elif int(self.option) == 2:
                         self.obj_handle.searchPatientById()
                     elif int(self.option) == 3:
